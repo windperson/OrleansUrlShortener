@@ -19,8 +19,19 @@
                 "action": "openExternally",
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
             },
+            "console": "integratedTerminal",
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+
+                // Following environment variables are required for debugging on local environment 
+                // (https://docs.microsoft.com/en-us/dotnet/azure/sdk/authentication-local-development-service-principal?tabs=azure-cli%2Cwindows%2Ccommand-line)
+                // First, create an Azure AD App registration via Azure CLI: 
+                // az ad sp create-for-rbac --name [Arbitrary_App_name]
+                // then add three role assignments: "Contributor", "Storage Account Contributor", "Storage Table Data Contributor" 
+                // for the Azure AD App in Access Control (IAM) section of Azure Storage Account Settings on the Azure portal.
+                "AZURE_CLIENT_ID": "", // use the "appId" of the Azure AD app registered 
+                "AZURE_TENANT_ID": "", // use the "tenant" of the Azure AD app registered
+                "AZURE_CLIENT_SECRET": ""// use the "password" of the Azure AD app registered
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
