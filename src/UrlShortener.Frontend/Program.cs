@@ -28,15 +28,21 @@ public class Program
             var urlStoreGrain = grainFactory.GetGrain<IUrlStoreGrain>(shortenedRouteSegment);
             await urlStoreGrain.SetUrl(shortenedRouteSegment, path);
             var resultBuilder = new UriBuilder(req.GetEncodedUrl()) { Path = $"/go/{shortenedRouteSegment}" };
-
             return Results.Ok(resultBuilder.Uri);
         });
         
         app.MapGet("/go/{shortenUriSegment}", async(string shortenUriSegment, IGrainFactory grainFactory) =>
         {
             var urlStoreGrain = grainFactory.GetGrain<IUrlStoreGrain>(shortenUriSegment);
-            var url = await urlStoreGrain.GetUrl();
-            return Results.Redirect(url);
+            try
+            {
+                var url = await urlStoreGrain.GetUrl();
+                return Results.Redirect(url);
+            }
+            catch (KeyNotFoundException)
+            {
+                return Results.NotFound("Url not found");
+            }
         });
 
         app.Run();

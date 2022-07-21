@@ -23,6 +23,11 @@ public class UrlStoreGrain : Grain, IUrlStoreGrain
 
     public Task<string> GetUrl()
     {
+        var originalUrl = _cache.State.Value;
+        if(string.IsNullOrEmpty(originalUrl))
+        {
+            throw new KeyNotFoundException("Url key not exist: " + this.GrainReference.GetPrimaryKeyString());
+        }
         return Task.FromResult(_cache.State.Value);
     }
 }
