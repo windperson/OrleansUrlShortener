@@ -15,6 +15,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        const string appInsightKey = "APPINSIGHTS_CONNECTION_STRING";
         var builder = WebApplication.CreateBuilder(args);
 
         #region Configure Orleans Silo
@@ -36,14 +37,20 @@ public class Program
                     // use this configuration if you only want to use local http only Azurite Azure Table Storage emulator
                     // options.ConfigureTableServiceClient("DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;");
                     options.ConfigureTableServiceClient(new Uri(urlStoreGrainOption.ServiceUrl),
-                     new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = urlStoreGrainOption.ManagedIdentityClientId }));
+                        new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                        {
+                            ManagedIdentityClientId = urlStoreGrainOption.ManagedIdentityClientId
+                        }));
                 });
 
-            var azureApplicationInsightKey = hostBuilderContext.Configuration.GetValue<string>("APPINSIGHTS_INSTRUMENTATIONKEY");
-            if (!string.IsNullOrEmpty(azureApplicationInsightKey))
+            var appInsightConnectionString = hostBuilderContext.Configuration.GetValue<string>(appInsightKey);
+            if (!string.IsNullOrEmpty(appInsightConnectionString))
             {
-                siloBuilder.AddApplicationInsightsTelemetryConsumer(azureApplicationInsightKey);
-                siloBuilder.ConfigureLogging((context, loggingBuilder) => loggingBuilder.AddApplicationInsights(azureApplicationInsightKey));
+                siloBuilder.AddApplicationInsightsTelemetryConsumer(appInsightConnectionString);
+                siloBuilder.ConfigureLogging(loggingBuilder =>
+                    loggingBuilder.AddApplicationInsights(
+                        configuration => { configuration.ConnectionString = appInsightConnectionString; },
+                        options => { options.FlushOnDispose = true; }));
             }
             else
             {
@@ -67,33 +74,31 @@ public class Program
 
         #endregion
 
-        var azureApplicationInsightKey = builder.Configuration.GetValue<string>("APPINSIGHTS_INSTRUMENTATIONKEY");
-        if (!string.IsNullOrEmpty(azureApplicationInsightKey))
+        var appInsightConnectionString = builder.Configuration.GetValue<string>(appInsightKey);
+        if (!string.IsNullOrEmpty(appInsightConnectionString))
         {
-            //we use Application insight key configuration to know if we are running on Azure Web App or locally
-            builder.Services.AddApplicationInsightsTelemetry(azureApplicationInsightKey);
-            builder.Logging.AddApplicationInsights(azureApplicationInsightKey);
+            //we use Application insight's configuration to know if we are running on Azure Web App or locally
+            builder.Services.AddApplicationInsightsTelemetry(options => options.ConnectionString = appInsightConnectionString);
+            builder.Logging.AddApplicationInsights(config => { config.ConnectionString = appInsightConnectionString; },
+                options => { options.FlushOnDispose = true; });
             builder.Logging.AddAzureWebAppDiagnostics();
         }
 
         builder.Logging.AddAzureWebAppDiagnostics();
         var app = builder.Build();
 
-        var orleansDashboardPath = @"orleansDashboard";
-        app.UseOrleansDashboard(new OrleansDashboard.DashboardOptions
-        {
-            BasePath = orleansDashboardPath,
-        });
+        const string orleansDashboardPath = @"orleansDashboard";
+        app.UseOrleansDashboard(new OrleansDashboard.DashboardOptions { BasePath = orleansDashboardPath, });
 
         app.MapGet("/", async (HttpContext context) =>
         {
             //remove postfix query string that incur by Facebook sharing 
-            var baseUrlBuilder = new UriBuilder(new Uri(context.Request.GetDisplayUrl()));
-            baseUrlBuilder.Query = "";
+            var baseUrlBuilder = new UriBuilder(new Uri(context.Request.GetDisplayUrl())) { Query = "" };
             var baseUrl = baseUrlBuilder.Uri.ToString();
 
-            await context.Response.WriteAsync($" Type \"{baseUrl}shorten/{{your original url}}\" in address bar to get your shorten url.\r\n\r\n"
-                                    + $" Orleans Dashboard: \"{baseUrl}{orleansDashboardPath}\" ");
+            await context.Response.WriteAsync(
+                $" Type \"{baseUrl}shorten/{{your original url}}\" in address bar to get your shorten url.\r\n\r\n"
+                + $" Orleans Dashboard: \"{baseUrl}{orleansDashboardPath}\" ");
         });
 
         app.MapMethods("/shorten/{*path}", new[] { "GET" }, async (HttpRequest req, IGrainFactory grainFactory, string path) =>
