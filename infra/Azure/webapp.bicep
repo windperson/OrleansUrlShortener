@@ -1,6 +1,8 @@
 param location string = resourceGroup().location
-param frontendWebAppName string = 'urlshortener-${uniqueString(utcNow())}'
-param storageAccountUrl string = ''
+param frontendWebAppName string
+param storageAccountUrl string
+param webappSku string = 'S1'
+
 var urlStoreGrainAppsettings = {
   name: 'UrlStoreGrain:ServiceUrl'
   value: storageAccountUrl
@@ -10,7 +12,7 @@ resource frontendAppServicePlan 'Microsoft.Web/serverfarms@2020-12-01' = {
   name: 'urlshortener-frontend-app-plan'
   location: location
   sku: {
-    name: 'S1'
+    name: webappSku
     capacity: 1
   }
 }
@@ -47,8 +49,8 @@ resource frontendAppSetting 'Microsoft.Web/sites/config@2022-03-01' = {
   properties: {
     appSettings: [
       {
-        name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-        value: frontendAppInsight.properties.InstrumentationKey
+        name: 'APPINSIGHTS_CONNECTION_STRING'
+        value: frontendAppInsight.properties.ConnectionString
       }
       {
         name: 'UrlStoreGrain:ManagedIdentityClientId'

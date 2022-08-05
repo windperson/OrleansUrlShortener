@@ -1,12 +1,18 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-      "resource_group": {
-        "value": "ithome_cloud_summit_demo"
-      },
-      "orleans_storage_account_prefix": {
-        "value": "urlgrainstatestore"
-      }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resource_group": {
+      "value": "ithome_cloud_summit_demo"
+    },
+    "frontend_webapp_prefix": {
+      "value": "urlshortener-"
+    },
+    "web_app_sku": {
+      "value": "S1"
+    },
+    "orleans_storage_account_prefix": {
+      "value": "urlgrainstatestore"
+    }
   }
 }
