@@ -14,6 +14,15 @@ var webapp_name = '${frontend_webapp_prefix}${uniqueString(urlShortenResourceGro
 
 var orleans_storage_account = take('${orleans_storage_account_prefix}${uniqueString(urlShortenResourceGroup.id)}', 24)
 
+module vnet 'vnet.bicep' = {
+  name: 'vnetDeployment'
+  scope: urlShortenResourceGroup
+  params: {
+    location: deploy_region
+    webAppName: webapp_name
+  }
+}
+
 module webapp 'webapp.bicep' = {
   name: 'webappDeployment'
   scope: urlShortenResourceGroup
@@ -22,6 +31,7 @@ module webapp 'webapp.bicep' = {
     frontendWebAppName: webapp_name
     webappSku: web_app_sku
     storageAccountUrl: 'https://${orleans_storage_account}.table.${environment().suffixes.storage}'
+    vnetSubnetId: vnet.outputs.vnetSubNetId
   }
 }
 
@@ -31,6 +41,6 @@ module storage 'storage.bicep' = {
   params: {
     storageAccountName: orleans_storage_account
     storageLocation: deploy_region
-    allowedManagedIdentity: webapp.outputs.webAppManagedIdentity
+    allowedManagedIdentities: webapp.outputs.webAppManagedIdentity
   }
 }

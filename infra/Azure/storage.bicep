@@ -1,8 +1,8 @@
 param storageAccountName string
 param storageLocation string = resourceGroup().location
-param allowedManagedIdentity string
+param allowedManagedIdentities array
 
-resource storage 'Microsoft.Storage/storageAccounts@2021-09-01' = {
+resource storage 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   name: storageAccountName
   location: storageLocation
   sku: {
@@ -29,35 +29,35 @@ resource storageTableDataContributorRole 'Microsoft.Authorization/roleDefinition
   name: '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3'
 }
 
-resource contributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
-  name: guid(storageAccountName, 'contributor')
+resource contributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = [for identity in allowedManagedIdentities: {
+  name: guid(storageAccountName, 'contributor', identity)
   scope: storage
   properties: {
     principalType: 'ServicePrincipal'
-    principalId: allowedManagedIdentity
+    principalId: identity
     roleDefinitionId: contributorRole.id
   }
-}
+}]
 
-resource storageAccountContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
-  name: guid(storageAccountName, 'storageAccountContributor')
+resource storageAccountContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = [for identity in allowedManagedIdentities: {
+  name: guid(storageAccountName, 'storageAccountContributor', identity)
   scope: storage
   properties: {
     principalType: 'ServicePrincipal'
-    principalId: allowedManagedIdentity
+    principalId: identity
     roleDefinitionId: storageAccountContributorRole.id
   }
-}
+}]
 
-resource staogeTableDataContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
-  name: guid(storageAccountName, 'storageTableDataContributor')
+resource staogeTableDataContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = [for identity in allowedManagedIdentities: {
+  name: guid(storageAccountName, 'storageTableDataContributor', identity)
   scope: storage
   properties: {
     principalType: 'ServicePrincipal'
-    principalId: allowedManagedIdentity
+    principalId: identity
     roleDefinitionId: storageTableDataContributorRole.id
   }
-}
+}]
 
 var key = listKeys(storage.name, storage.apiVersion).keys[0].value
 

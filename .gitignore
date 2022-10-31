@@ -453,3 +453,4 @@ $RECYCLE.BIN/
 !.vscode/launch.json
 !.vscode/extensions.json
 notebooks/.ipynb_checkpoints
+src/UrlShortener.Frontend/Properties/ServiceDependencies/**/profile.arm.json
