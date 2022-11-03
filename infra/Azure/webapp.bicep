@@ -33,6 +33,7 @@ resource frontend 'Microsoft.Web/sites@2022-03-01' = {
             http20Enabled: true
             vnetPrivatePortsCount: 2
             netFrameworkVersion: 'v6.0'
+            healthCheckPath: '/healthz'
         }
     }
 }
@@ -112,6 +113,7 @@ resource stagingSlot 'Microsoft.Web/sites/slots@2022-03-01' = {
             http20Enabled: true
             vnetPrivatePortsCount: 2
             netFrameworkVersion: 'v6.0'
+            healthCheckPath: '/healthz'
             appSettings: [
                 {
                     name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'

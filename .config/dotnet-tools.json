@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "dotnet-ef": {
+      "version": "6.0.10",
+      "commands": [
+        "dotnet-ef"
+      ]
+    },
+    "microsoft.dotnet-httprepl": {
+      "version": "6.0.0",
+      "commands": [
+        "httprepl"
+      ]
+    }
+  }
+}
