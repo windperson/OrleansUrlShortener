@@ -22,7 +22,7 @@ public class SiloHealthCheck : IHealthCheck
         {
             if(!participant.CheckHealth(thisCheckTime, out var reason))
             {
-                return Task.FromResult(HealthCheckResult.Unhealthy(reason));
+                return Task.FromResult(HealthCheckResult.Degraded(reason));
             }
         }
         

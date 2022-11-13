@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using Orleans;
-using Orleans.Concurrency;
 
 using UrlShortener.Backend.Grains;
 
@@ -16,7 +15,7 @@ public class GrainHealthCheck : IHealthCheck
         _clusterClient = clusterClient;
     }
         
-    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new())
     {
         try
         {
