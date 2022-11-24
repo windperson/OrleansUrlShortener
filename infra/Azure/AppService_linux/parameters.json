@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "resource_group": {
-      "value": "ithome_cloud_summit_demo"
+      "value": "orleans_net6webapp_linux_demo"
     },
     "frontend_webapp_prefix": {
       "value": "urlshortener-"
@@ -12,7 +12,7 @@
       "value": "S1"
     },
     "orleans_storage_account_prefix": {
-      "value": "urlgrainstatestore"
+      "value": "state0urlgrain0"
     }
   }
 }

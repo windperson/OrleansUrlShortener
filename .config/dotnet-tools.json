@@ -8,10 +8,10 @@
         "dotnet-ef"
       ]
     },
-    "microsoft.dotnet-httprepl": {
-      "version": "6.0.0",
+    "dotnet-httpie": {
+      "version": "0.6.2",
       "commands": [
-        "httprepl"
+        "dotnet-http"
       ]
     }
   }

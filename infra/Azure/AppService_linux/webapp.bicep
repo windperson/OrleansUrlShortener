@@ -5,11 +5,15 @@ param webappSku string = 'S1'
 param vnetSubnetId string
 
 resource frontendAppServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-    name: 'urlshortener-frontend-app-plan'
+    name: '${frontendWebAppName}-plan'
     location: location
     sku: {
         name: webappSku
         capacity: 2
+    }
+    kind: 'linux'
+    properties: {
+        reserved: true
     }
 }
 
@@ -19,6 +23,7 @@ resource frontend 'Microsoft.Web/sites@2022-03-01' = {
     tags: {
         'hidden-related:${resourceGroup().id}/providers/Microsoft.Web/serverfarms/appServicePlan': 'Resource'
     }
+    kind: 'app,linux'
     identity: {
         type: 'UserAssigned'
         userAssignedIdentities: {
@@ -27,24 +32,16 @@ resource frontend 'Microsoft.Web/sites@2022-03-01' = {
     }
     properties: {
         clientAffinityEnabled: false
+        httpsOnly: true
         serverFarmId: frontendAppServicePlan.id
         virtualNetworkSubnetId: vnetSubnetId
         siteConfig: {
+            linuxFxVersion: 'DOTNETCORE:6.0'
+            alwaysOn: true
             http20Enabled: true
             vnetPrivatePortsCount: 2
-            netFrameworkVersion: 'v6.0'
             healthCheckPath: '/healthz'
         }
-    }
-}
-
-resource webappMetaData 'Microsoft.Web/sites/config@2022-03-01' = {
-    name: 'metadata'
-    kind: 'string'
-    parent: frontend
-    properties: {
-        // Trick to enable use .NET Core or .NET 5+ : https://www.coderperfect.com/how-to-configure-runtime-stack-to-azure-app-service-with-bicep-bicep-version-0-4/
-        CURRENT_STACK: 'dotnetcore'
     }
 }
 
@@ -54,7 +51,7 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-
 }
 
 module appInsight 'operationalInsight.bicep' = {
-    name: 'frontendAppInsight'
+    name: '${frontendWebAppName}AppInsight'
     params: {
         location: location
         webAppName: frontendWebAppName
@@ -72,25 +69,31 @@ resource frontendAppConfig 'Microsoft.Web/sites/config@2022-03-01' = {
                 value: appInsight.outputs.appInsightConnectionString
             }
             {
-                name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+                name: 'APPINSIGHTS__INSTRUMENTATIONKEY'
                 value: appInsight.outputs.appInsightInstrumentKey
 
             }
             {
-                name: 'UrlStoreGrain:ManagedIdentityClientId'
+                name: 'UrlStoreGrain__ManagedIdentityClientId'
                 value: managedIdentity.properties.clientId
             }
             {
-                name: 'UrlStoreGrain:ServiceUrl'
+                name: 'UrlStoreGrain__ServiceUrl'
                 value: storageAccountUrl
             }
             {
-                name: 'AzureTableCluster:ServiceUrl'
+                name: 'AzureTableCluster__ServiceUrl'
                 value: storageAccountUrl
             }
             {
-                name: 'AzureTableCluster:ManagedIdentityClientId'
+                name: 'AzureTableCluster__ManagedIdentityClientId'
                 value: managedIdentity.properties.clientId
+            }
+            {
+                // Extend app service restart container time limit so Orleans Silos could have enough time to sync
+                // https://learn.microsoft.com/en-us/troubleshoot/azure/app-service/faqs-app-service-linux#my-custom-container-takes-a-long-time-to-start--and-the-platform-restarts-the-container-before-it-finishes-starting-up-
+                name: 'WEBSITES_CONTAINER_START_TIME_LIMIT'
+                value: '330'
             }
         ]
     }
@@ -106,13 +109,23 @@ resource stagingSlot 'Microsoft.Web/sites/slots@2022-03-01' = {
     name: 'staging'
     location: location
     parent: frontend
+    kind: 'app,linux'
+    identity: {
+        type: 'UserAssigned'
+        userAssignedIdentities: {
+            '${managedIdentity_staging.id}': {}
+        }
+    }
     properties: {
+        clientAffinityEnabled: false
+        httpsOnly: true
         serverFarmId: frontendAppServicePlan.id
         virtualNetworkSubnetId: vnetSubnetId
         siteConfig: {
+            linuxFxVersion: 'DOTNETCORE:6.0'
+            alwaysOn: true
             http20Enabled: true
             vnetPrivatePortsCount: 2
-            netFrameworkVersion: 'v6.0'
             healthCheckPath: '/healthz'
             appSettings: [
                 {
@@ -120,40 +133,40 @@ resource stagingSlot 'Microsoft.Web/sites/slots@2022-03-01' = {
                     value: appInsight.outputs.appInsightConnectionString
                 }
                 {
-                    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+                    name: 'APPINSIGHTS__INSTRUMENTATIONKEY'
                     value: appInsight.outputs.appInsightInstrumentKey
                 }
                 {
-                    name: 'UrlStoreGrain:ManagedIdentityClientId'
+                    name: 'UrlStoreGrain__ManagedIdentityClientId'
                     value: managedIdentity_staging.properties.clientId
                 }
                 {
-                    name: 'UrlStoreGrain:ServiceUrl'
+                    name: 'UrlStoreGrain__ServiceUrl'
                     value: storageAccountUrl
                 }
                 {
-                    name: 'UrlStoreGrain:TableName'
+                    name: 'UrlStoreGrain__TableName'
                     value: 'UrlStoreGrainOnStaging'
                 }
                 {
-                    name: 'AzureTableCluster:ServiceUrl'
+                    name: 'AzureTableCluster__ServiceUrl'
                     value: storageAccountUrl
                 }
                 {
-                    name: 'AzureTableCluster:ManagedIdentityClientId'
+                    name: 'AzureTableCluster__ManagedIdentityClientId'
                     value: managedIdentity_staging.properties.clientId
                 }
                 {
-                    name: 'AzureTableCluster:TableName'
+                    name: 'AzureTableCluster__TableName'
                     value: 'AzureTableClusterOnStaging'
                 }
+                {
+                    // Extend app service restart container time limit so Orleans Silos could have enough time to sync
+                    // https://learn.microsoft.com/en-us/troubleshoot/azure/app-service/faqs-app-service-linux#my-custom-container-takes-a-long-time-to-start--and-the-platform-restarts-the-container-before-it-finishes-starting-up-
+                    name: 'WEBSITES_CONTAINER_START_TIME_LIMIT'
+                    value: '330'
+                }
             ]
-        }
-    }
-    identity: {
-        type: 'UserAssigned'
-        userAssignedIdentities: {
-            '${managedIdentity_staging.id}': {}
         }
     }
 }
@@ -164,14 +177,15 @@ resource webAppStagingSlotConfig 'Microsoft.Web/sites/config@2021-03-01' = {
     parent: frontend
     properties: {
         appSettingNames: [
-            'UrlStoreGrain:ServiceUrl'
-            'UrlStoreGrain:ManagedIdentityClientId'
-            'UrlStoreGrain:TableName'
-            'AzureTableCluster:ServiceUrl'
-            'AzureTableCluster:ManagedIdentityClientId'
-            'AzureTableCluster:TableName'
+            'UrlStoreGrain__ServiceUrl'
+            'UrlStoreGrain__ManagedIdentityClientId'
+            'UrlStoreGrain__TableName'
+            'AzureTableCluster__ServiceUrl'
+            'AzureTableCluster__ManagedIdentityClientId'
+            'AzureTableCluster__TableName'
+            'WEBSITES_CONTAINER_START_TIME_LIMIT'
         ]
     }
 }
 
-output webAppManagedIdentity array = [ managedIdentity.properties.principalId , managedIdentity_staging.properties.principalId ]
+output webAppManagedIdentity array = [ managedIdentity.properties.principalId, managedIdentity_staging.properties.principalId ]
