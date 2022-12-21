@@ -36,7 +36,7 @@ resource frontend 'Microsoft.Web/sites@2022-03-01' = {
         serverFarmId: frontendAppServicePlan.id
         virtualNetworkSubnetId: vnetSubnetId
         siteConfig: {
-            linuxFxVersion: 'DOTNETCORE:6.0'
+            linuxFxVersion: 'DOTNETCORE|6.0'
             alwaysOn: true
             http20Enabled: true
             vnetPrivatePortsCount: 2
@@ -69,9 +69,16 @@ resource frontendAppConfig 'Microsoft.Web/sites/config@2022-03-01' = {
                 value: appInsight.outputs.appInsightConnectionString
             }
             {
-                name: 'APPINSIGHTS__INSTRUMENTATIONKEY'
+                name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
                 value: appInsight.outputs.appInsightInstrumentKey
-
+            }
+            {
+                name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+                value: '~3'
+            }
+            {
+                name: 'XDT_MicrosoftApplicationInsights_Mode'
+                value: 'default'
             }
             {
                 name: 'UrlStoreGrain__ManagedIdentityClientId'
@@ -122,7 +129,7 @@ resource stagingSlot 'Microsoft.Web/sites/slots@2022-03-01' = {
         serverFarmId: frontendAppServicePlan.id
         virtualNetworkSubnetId: vnetSubnetId
         siteConfig: {
-            linuxFxVersion: 'DOTNETCORE:6.0'
+            linuxFxVersion: 'DOTNETCORE|6.0'
             alwaysOn: true
             http20Enabled: true
             vnetPrivatePortsCount: 2
@@ -133,8 +140,16 @@ resource stagingSlot 'Microsoft.Web/sites/slots@2022-03-01' = {
                     value: appInsight.outputs.appInsightConnectionString
                 }
                 {
-                    name: 'APPINSIGHTS__INSTRUMENTATIONKEY'
+                    name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
                     value: appInsight.outputs.appInsightInstrumentKey
+                }
+                {
+                    name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+                    value: '~3'
+                }
+                {
+                    name: 'XDT_MicrosoftApplicationInsights_Mode'
+                    value: 'default'
                 }
                 {
                     name: 'UrlStoreGrain__ManagedIdentityClientId'

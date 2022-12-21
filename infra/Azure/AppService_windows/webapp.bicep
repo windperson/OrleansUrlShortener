@@ -78,6 +78,14 @@ resource frontendAppConfig 'Microsoft.Web/sites/config@2022-03-01' = {
 
             }
             {
+                name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+                value: '~3'
+            }
+            {
+                name: 'XDT_MicrosoftApplicationInsights_Mode'
+                value: 'default'
+            }
+            {
                 name: 'UrlStoreGrain:ManagedIdentityClientId'
                 value: managedIdentity.properties.clientId
             }
@@ -132,6 +140,14 @@ resource stagingSlot 'Microsoft.Web/sites/slots@2022-03-01' = {
                     value: appInsight.outputs.appInsightInstrumentKey
                 }
                 {
+                    name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+                    value: '~3'
+                }
+                {
+                    name: 'XDT_MicrosoftApplicationInsights_Mode'
+                    value: 'default'
+                }
+                {
                     name: 'UrlStoreGrain:ManagedIdentityClientId'
                     value: managedIdentity_staging.properties.clientId
                 }
@@ -176,4 +192,4 @@ resource webAppStagingSlotConfig 'Microsoft.Web/sites/config@2021-03-01' = {
     }
 }
 
-output webAppManagedIdentity array = [ managedIdentity.properties.principalId , managedIdentity_staging.properties.principalId ]
+output webAppManagedIdentity array = [ managedIdentity.properties.principalId, managedIdentity_staging.properties.principalId ]
