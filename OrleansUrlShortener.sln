@@ -1,29 +1,33 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5EAA9E2C-6F66-4EF5-86B0-4F093AC70CEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UrlShortener.Frontend", "src\UrlShortener.Frontend\UrlShortener.Frontend.csproj", "{EECC71C2-20AF-422E-B66E-C2C4755EBDA2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UrlShortener.Frontend", "src\UrlShortener.Frontend\UrlShortener.Frontend.csproj", "{EECC71C2-20AF-422E-B66E-C2C4755EBDA2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UrlShortener.Backend.Interfaces", "src\UrlShortener.Backend.Interfaces\UrlShortener.Backend.Interfaces.csproj", "{F434F0B4-6FBA-4B88-B497-4D5A75EE0A6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UrlShortener.Backend.Interfaces", "src\UrlShortener.Backend.Interfaces\UrlShortener.Backend.Interfaces.csproj", "{F434F0B4-6FBA-4B88-B497-4D5A75EE0A6A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UrlShortener.Backend.Grains", "src\UrlShortener.Backend.Grains\UrlShortener.Backend.Grains.csproj", "{4F4EA268-B450-415E-BFFD-59769DAD4746}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UrlShortener.Backend.Grains", "src\UrlShortener.Backend.Grains\UrlShortener.Backend.Grains.csproj", "{4F4EA268-B450-415E-BFFD-59769DAD4746}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{6CB71C1D-32E1-4418-AD01-C194DC2BE392}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UrlShortener.Backend.Grains.Test", "test\UrlShortener.Backend.Grains.Test\UrlShortener.Backend.Grains.Test.csproj", "{D1C792B7-DB76-4E54-9548-53961D622C7B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UrlShortener.Backend.Grains.Test", "test\UrlShortener.Backend.Grains.Test\UrlShortener.Backend.Grains.Test.csproj", "{D1C792B7-DB76-4E54-9548-53961D622C7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UrlShortener.Infra.Silo", "src\UrlShortener.Infra.Silo\UrlShortener.Infra.Silo.csproj", "{390C4A1B-7722-4031-8FE7-B52E6B6ADED7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UrlShortener.Infra.Silo", "src\UrlShortener.Infra.Silo\UrlShortener.Infra.Silo.csproj", "{390C4A1B-7722-4031-8FE7-B52E6B6ADED7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EC320B25-5829-43AC-89DC-3766415A8F00}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{2D3E3736-60B6-4F8C-AE60-F9D7A8BB88E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{EECC71C2-20AF-422E-B66E-C2C4755EBDA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -46,12 +50,22 @@ Global
 		{390C4A1B-7722-4031-8FE7-B52E6B6ADED7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{390C4A1B-7722-4031-8FE7-B52E6B6ADED7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{390C4A1B-7722-4031-8FE7-B52E6B6ADED7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D3E3736-60B6-4F8C-AE60-F9D7A8BB88E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D3E3736-60B6-4F8C-AE60-F9D7A8BB88E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D3E3736-60B6-4F8C-AE60-F9D7A8BB88E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D3E3736-60B6-4F8C-AE60-F9D7A8BB88E4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{EECC71C2-20AF-422E-B66E-C2C4755EBDA2} = {5EAA9E2C-6F66-4EF5-86B0-4F093AC70CEB}
-		{4F4EA268-B450-415E-BFFD-59769DAD4746} = {5EAA9E2C-6F66-4EF5-86B0-4F093AC70CEB}
 		{F434F0B4-6FBA-4B88-B497-4D5A75EE0A6A} = {5EAA9E2C-6F66-4EF5-86B0-4F093AC70CEB}
+		{4F4EA268-B450-415E-BFFD-59769DAD4746} = {5EAA9E2C-6F66-4EF5-86B0-4F093AC70CEB}
 		{D1C792B7-DB76-4E54-9548-53961D622C7B} = {6CB71C1D-32E1-4418-AD01-C194DC2BE392}
 		{390C4A1B-7722-4031-8FE7-B52E6B6ADED7} = {5EAA9E2C-6F66-4EF5-86B0-4F093AC70CEB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {56FC1DBD-D179-4591-8432-EB2962B937C1}
 	EndGlobalSection
 EndGlobal

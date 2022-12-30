@@ -1,0 +1,32 @@
+version: '3.4'
+
+services:
+  urlshortener.frontend:
+    build:
+      context: .
+      dockerfile: src/UrlShortener.Frontend/Dockerfile
+      args:
+        - imgVer=-mkcert-dev
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - UrlStoreGrain__ServiceUrl=https://table.internal.host:10002/devstoreaccount1
+    ports:
+      - "80"
+      - "443"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    depends_on:
+      - azurite
+    links:
+      - "azurite:table.internal.host"
+      
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    scale: 1
+    restart: unless-stopped
+    command: "azurite --location /docker_azurite_data --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --oauth basic --cert /devCerts/table.internal.host.pem --key /devCerts/table.internal.host-key.pem --disableProductStyleUrl"
+    volumes:
+      - ./docker_azurite_data:/docker_azurite_data
+      - ./devCerts:/devCerts

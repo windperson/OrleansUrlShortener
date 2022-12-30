@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  urlshortener.frontend:
+    image: ${DOCKER_REGISTRY-}urlshortenerfrontend
+    build:
+      context: .
+      dockerfile: src/UrlShortener.Frontend/Dockerfile

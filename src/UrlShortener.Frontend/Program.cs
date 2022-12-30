@@ -120,7 +120,8 @@ public class Program
             await context.Response.WriteAsync(
                 "<html lang=\"en\"><head><title>.NET 6 Orleans url shortener</title><meta http-equiv=\"content-language\" content=\"en-us\"/></head>" +
                 $"<body>Type <code>\"{baseUrl}shorten/{{your original url}}\"</code> in address bar to get your shorten url.<br/><br/>" +
-                $" Orleans Dashboard: <a href=\"{dashboardUrl}\" target=\"_blank\">{dashboardUrl}</a></body></html>");
+                $" Orleans Dashboard: <a href=\"{dashboardUrl}\" target=\"_blank\">{dashboardUrl}</a>" +
+                "<div>ver <b>1.0</b></div></body></html>");
         });
 
         app.MapMethods("/shorten/{*path}", new[] { "GET" }, async (HttpRequest req, IGrainFactory grainFactory, string path) =>

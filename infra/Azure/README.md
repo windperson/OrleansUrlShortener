@@ -4,3 +4,4 @@ Base on what kind of Azure cloud service you want to deploy, you can choose one 
 
 * [Azure App Service](./AppService_windows/README.md)
 * [Azure App Service(Linux)](./AppService_linux/README.md)
+    * [With Custom Container Image](./AppService_CustomContainer/README.md)
