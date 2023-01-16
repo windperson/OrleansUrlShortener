@@ -30,6 +30,9 @@ public class Program
         if (isInContainer)
         {
             builder.Host.UseConsoleLifetime();
+            // either use the following code or set the environment variable "ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS" to true in starting container
+            // builder.Logging.ClearProviders();
+            // builder.Logging.AddSimpleConsole(i => i.ColorBehavior = LoggerColorBehavior.Disabled);
         }
 
         #region Configure Orleans Silo
