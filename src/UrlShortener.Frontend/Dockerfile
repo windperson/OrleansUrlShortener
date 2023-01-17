@@ -1,21 +1,23 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-ARG imgVer=""
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
+ARG imgVer=""
 FROM base AS base-mkcert-dev
-COPY devCerts /devCerts
-RUN if test -f "/devCerts/rootCA.pem" ; \
-    then cp /devCerts/rootCA.pem /usr/local/share/ca-certificates/rootCA.crt && \ 
+RUN echo "imgVer : $imgVer"
+COPY devCerts /devCerts 
+RUN if [ -f /devCerts/rootCA.pem ] && [ "$imgVer" = "-mkcert-dev" ]; then \
+    cp /devCerts/rootCA.pem /usr/local/share/ca-certificates/rootCA.crt && \ 
     chmod 644 /usr/local/share/ca-certificates/rootCA.crt && \
     update-ca-certificates && \
-    rm -rf /usr/local/share/ca-certificates/rootCA.crt && \
-    rm -rf /devCerts && echo "Dev Root CA added" ; \
+    echo "Dev Root CA added" ; \
+    elif [ "$imgVer" = "-mkcert-dev" ]; then \
+    echo "Dev Root CA file(.pem) not found" && exit 1; \
     else \
-    echo "Dev Root CA file(.pem) not found" && exit 1 ; \
+    echo "Normal docker build"; \
     fi
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
