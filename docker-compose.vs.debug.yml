@@ -1,7 +1,7 @@
 services:
   urlshortener.frontend:
     build:
-      target: base-mkcert-dev
+        target: base-mkcert-dev 
     environment:
       # Following environment variables are required for debugging on local environment 
       # (https://docs.microsoft.com/en-us/dotnet/azure/sdk/authentication-local-development-service-principal?tabs=azure-cli%2Cwindows%2Ccommand-line)

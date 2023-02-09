@@ -5,21 +5,6 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-ARG imgVer=""
-FROM base AS base-mkcert-dev
-RUN echo "imgVer : $imgVer"
-COPY devCerts /devCerts 
-RUN if [ -f /devCerts/rootCA.pem ] && [ "$imgVer" = "-mkcert-dev" ]; then \
-    cp /devCerts/rootCA.pem /usr/local/share/ca-certificates/rootCA.crt && \ 
-    chmod 644 /usr/local/share/ca-certificates/rootCA.crt && \
-    update-ca-certificates && \
-    echo "Dev Root CA added" ; \
-    elif [ "$imgVer" = "-mkcert-dev" ]; then \
-    echo "Dev Root CA file(.pem) not found" && exit 1; \
-    else \
-    echo "Normal docker build"; \
-    fi
-
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["src/UrlShortener.Frontend/UrlShortener.Frontend.csproj", "src/UrlShortener.Frontend/"]
@@ -34,7 +19,7 @@ RUN dotnet build "UrlShortener.Frontend.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "UrlShortener.Frontend.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-FROM base${imgVer} AS final
+FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "UrlShortener.Frontend.dll"]

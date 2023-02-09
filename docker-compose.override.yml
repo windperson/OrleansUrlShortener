@@ -4,9 +4,7 @@ services:
   urlshortener.frontend:
     build:
       context: .
-      dockerfile: src/UrlShortener.Frontend/Dockerfile
-      args:
-        - imgVer=-mkcert-dev
+      dockerfile: src/UrlShortener.Frontend/Dockerfile.dev
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
