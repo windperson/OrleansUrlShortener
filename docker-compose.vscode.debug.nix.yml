@@ -1,0 +1,17 @@
+services:
+  urlshortener.frontend:
+    build:
+      target: final
+    ports:
+      - "80"
+    environment:
+      - ASPNETCORE_URLS=http://+:80
+    env_file:
+      - local.debug.azure.env
+    volumes:
+      # Override volume definition in docker-compose.override.yml, since the path is different on Linux/macOS.
+      # see https://learn.microsoft.com/aspnet/core/security/app-secrets?tabs=linux#how-the-secret-manager-tool-works
+      - ~/.microsoft/usersecrets:/root/.microsoft/usersecrets:ro
+      # see https://learn.microsoft.com/aspnet/core/security/docker-https#macos-or-linux
+      - ./devCerts/Https:/root/.aspnet/https:ro
+      - ~/.vsdbg:/remote_debugger:rw

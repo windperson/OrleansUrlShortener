@@ -1,0 +1,13 @@
+services:
+  urlshortener.frontend:
+    build:
+      target: final
+    ports:
+      - "80"
+    env_file:
+      - local.debug.azure.env
+    environment:
+      # Override serving url definition in docker-compose.override.yml, Azure App Service for Linux does not have to provide https
+      - ASPNETCORE_URLS=http://+:80
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw

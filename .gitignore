@@ -454,3 +454,6 @@ $RECYCLE.BIN/
 !.vscode/extensions.json
 notebooks/.ipynb_checkpoints
 src/UrlShortener.Frontend/Properties/ServiceDependencies/**/profile.arm.json
+
+## env files for local development
+local.debug.azure.env

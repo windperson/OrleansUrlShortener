@@ -1,0 +1,23 @@
+{
+    "dotnet-test-explorer.testProjectPath": "test/**/*Test.@(csproj|vbproj|fsproj)",
+    "docker.commands.composeUp": [
+        {
+            "label": "compose_up-windows",
+            "template": "${composeCommand} ${configurationFile} -f docker-compose.vscode.debug.win.yml up ${detached} ${build}"
+        },
+        {
+            "label": "compose_up-linux/macOS",
+            "template": "${composeCommand} ${configurationFile} -f docker-compose.vscode.debug.nix.yml up ${detached} ${build}"
+        }
+    ],
+    "docker.commands.composeDown": [
+        {
+            "label": "compose_up-windows",
+            "template": "${composeCommand} ${configurationFile} -f docker-compose.vscode.debug.win.yml down"
+        },
+        {
+            "label": "compose_up-linux/macOS",
+            "template": "${composeCommand} ${configurationFile} -f docker-compose.vscode.debug.nix.yml down"
+        }
+    ]
+}
