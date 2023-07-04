@@ -19,5 +19,6 @@
             "label": "compose down (Linux/macOS)",
             "template": "${composeCommand} ${configurationFile} -f docker-compose.vscode.debug.nix.yml down"
         }
-    ]
+    ],
+    "dotnet.defaultSolution": "OrleansUrlShortener.sln"
 }

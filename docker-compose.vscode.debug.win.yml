@@ -7,7 +7,8 @@ services:
     env_file:
       - local.debug.azure.env
     environment:
-      # Override serving url definition in docker-compose.override.yml, Azure App Service for Linux does not have to provide https
-      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=Pass1234
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/root/.aspnet/https/aspnetapp.pfx
     volumes:
+      - ./devCerts/https:/root/.aspnet/https:ro
       - ~/.vsdbg:/remote_debugger:rw
