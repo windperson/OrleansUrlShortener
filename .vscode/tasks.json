@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "build_frontend",
             "command": "dotnet",
             "type": "process",
             "args": [
@@ -14,26 +14,14 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "publish",
+            "label": "build_backend",
             "command": "dotnet",
             "type": "process",
             "args": [
-                "publish",
-                "${workspaceFolder}/src/UrlShortener.Frontend/UrlShortener.Frontend.csproj",
+                "build",
+                "${workspaceFolder}/src/UrlShortener.Backend.SiloHost/UrlShortener.Backend.SiloHost.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "watch",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "watch",
-                "run",
-                "--project",
-                "${workspaceFolder}/src/UrlShortener.Frontend/UrlShortener.Frontend.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

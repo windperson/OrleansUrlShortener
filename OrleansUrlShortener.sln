@@ -24,6 +24,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{2D3E3736-60B6-4F8C-AE60-F9D7A8BB88E4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UrlShortener.Backend.SiloHost", "src\UrlShortener.Backend.SiloHost\UrlShortener.Backend.SiloHost.csproj", "{32E34900-9451-4C67-91EA-BDD7E12853D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,6 +56,10 @@ Global
 		{2D3E3736-60B6-4F8C-AE60-F9D7A8BB88E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D3E3736-60B6-4F8C-AE60-F9D7A8BB88E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D3E3736-60B6-4F8C-AE60-F9D7A8BB88E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32E34900-9451-4C67-91EA-BDD7E12853D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32E34900-9451-4C67-91EA-BDD7E12853D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32E34900-9451-4C67-91EA-BDD7E12853D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32E34900-9451-4C67-91EA-BDD7E12853D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +70,7 @@ Global
 		{4F4EA268-B450-415E-BFFD-59769DAD4746} = {5EAA9E2C-6F66-4EF5-86B0-4F093AC70CEB}
 		{D1C792B7-DB76-4E54-9548-53961D622C7B} = {6CB71C1D-32E1-4418-AD01-C194DC2BE392}
 		{390C4A1B-7722-4031-8FE7-B52E6B6ADED7} = {5EAA9E2C-6F66-4EF5-86B0-4F093AC70CEB}
+		{32E34900-9451-4C67-91EA-BDD7E12853D9} = {5EAA9E2C-6F66-4EF5-86B0-4F093AC70CEB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {56FC1DBD-D179-4591-8432-EB2962B937C1}

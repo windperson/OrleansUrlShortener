@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resource_group": {
+      "value": "orleans_net6container_demo"
+    },
+    "frontend_webapp_prefix": {
+      "value": "urlshortener-"
+    },
+    "web_app_sku": {
+      "value": "S1"
+    },
+    "orleans_storage_account_prefix": {
+      "value": "state0urlgrain0"
+    },
+    "frontend_webapp_docker_image": {
+      "value": "urlshortener/frontend"
+    },
+    "backend_aci_docker_image": {
+      "value": "urlshortener/backend"
+    },
+    "acr_prefix": {
+      "value": "docker0reg"
+    }
+  }
+}

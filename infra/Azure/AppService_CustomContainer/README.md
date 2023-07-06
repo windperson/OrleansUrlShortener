@@ -28,5 +28,5 @@ If you want to run project locally, Use [Azurite storage emulator](https://githu
 Then [install "mkcert" according to your OS](https://github.com/FiloSottile/mkcert#installation), follow the [instructions to create local trust certificates to enable HTTPS on local Azurite storage emulator](https://github.com/Azure/Azurite#https-setup).  
 Then Run Azurite with following command:
 ```sh
-azurite --location [data_store_path_you_choose]  --oauth basic --cert 127.0.0.1.pem --key 127.0.0.1-key.pem
+azurite --location [data_store_path_you_choose]  --oauth basic --cert 127.0.0.1.pem --key 127.0.0.1-key.pem --disableProductStyleUrl
 ```

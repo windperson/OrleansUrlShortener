@@ -1,3 +1,5 @@
+using System.Net;
+
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Logging.Console;
 
@@ -39,18 +41,28 @@ public class Program
 
         builder.Host.UseOrleans((hostBuilderContext, siloBuilder) =>
         {
+            var siloIpPortOption = hostBuilderContext.GetOptions<SiloNetworkIpPortOption>("SiloNetworkIpPort");
             // Configure silo
             if (SiloNetworkIpPortOptionHelper.HasAzureWebAppSiloNetworkIpPortOption(out var siloNetworkIpPortOption))
             {
                 var clusterOptions = ClusterOptionsHelper.CreateClusterOptions("cluster-", "OrleansUrlShortener");
                 siloBuilder.UseAzureAppServiceRunningConfiguration(siloNetworkIpPortOption, clusterOptions, logger);
-
-                var azureTableClusterOption = hostBuilderContext.GetOptions<AzureTableClusterOption>("AzureTableCluster");
-                siloBuilder.UseAzureTableClusteringInfoStorage(azureTableClusterOption);
+            }
+            else if (SiloIpAddressIsAny(siloIpPortOption.SiloIpAddress) || siloIpPortOption.ListenOnAnyHostAddress)
+            {
+                siloIpPortOption.SiloIpAddress = IPAddress.Loopback;
+                var clusterOptions = ClusterOptionsHelper.CreateClusterOptions("cluster-", "OrleansUrlShortener");
+                siloBuilder.UseAzureAppServiceRunningConfiguration(siloIpPortOption, clusterOptions, logger);
             }
             else if (hostBuilderContext.HostingEnvironment.IsDevelopment())
             {
                 siloBuilder.UseLocalSingleSilo();
+            }
+
+            var azureTableClusterOption = hostBuilderContext.GetOptions<AzureTableClusterOption>("AzureTableCluster");
+            if (!string.IsNullOrEmpty(azureTableClusterOption.ServiceUrl))
+            {
+                siloBuilder.UseAzureTableClusteringInfoStorage(azureTableClusterOption);
             }
 
             // Configure Grain Storage mechanism
@@ -153,5 +165,11 @@ public class Program
         #endregion
 
         app.Run();
+    }
+
+    private static bool SiloIpAddressIsAny(IPAddress address)
+    {
+        // Refactored conditional statement into a separate boolean helper method, to better clarify the intent of the code.
+        return address.Equals(IPAddress.Any) || address.Equals(IPAddress.IPv6Any);
     }
 }
