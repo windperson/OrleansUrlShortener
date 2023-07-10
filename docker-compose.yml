@@ -2,7 +2,14 @@ version: '3.4'
 
 services:
   urlshortener.frontend:
-    image: ${DOCKER_REGISTRY-}urlshortenerfrontend
+    image: ${DOCKER_REGISTRY-}urlshortener/frontend
     build:
       context: .
       dockerfile: src/UrlShortener.Frontend/Dockerfile
+
+  urlshortener.backend.silohost:
+    image: ${DOCKER_REGISTRY-}urlshortener/backend_silohost
+    build:
+      context: .
+      dockerfile: src/UrlShortener.Backend.SiloHost/Dockerfile
+

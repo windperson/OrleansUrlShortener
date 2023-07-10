@@ -1,6 +1,6 @@
 ﻿using Azure.Identity;
 
-using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -40,7 +40,7 @@ public static class ConfigureSiloExtensions
 
     public static ISiloBuilder UseOsEnvironmentStatistics(this ISiloBuilder siloBuilder, ILogger? logger = null)
     {
-        logger ??= new NullLogger<WebApplicationBuilder>();
+        logger ??= new NullLogger<HostBuilder>();
         if (OperatingSystem.IsWindows())
         {
             logger.LogInformation("Using Windows OS Environment Statistics");
@@ -79,7 +79,7 @@ public static class ConfigureSiloExtensions
     internal static ISiloBuilder ConfigMultipleSilosClustering(this ISiloBuilder siloBuilder,
         SiloNetworkIpPortOption ipPortOption, ClusterOptions clusterOptions, ILogger? logger = null)
     {
-        logger ??= new NullLogger<WebApplicationBuilder>();
+        logger ??= new NullLogger<HostBuilder>();
 
         logger.LogInformation(
             "Using ListenOnAll: {ListenOnAnyHostAddress},  IP: {SiloIpAddress}, SiloPort: {SiloPort}, GatewayPort: {GatewayPort}",

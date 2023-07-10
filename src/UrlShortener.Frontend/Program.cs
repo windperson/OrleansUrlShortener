@@ -1,9 +1,12 @@
 using System.Net;
 
+using Azure.Identity;
+
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Logging.Console;
 
 using Orleans;
+using Orleans.Configuration;
 
 using UrlShortener.Backend.Interfaces;
 using UrlShortener.Frontend.HealthChecks;
@@ -37,21 +40,55 @@ public class Program
             // builder.Logging.AddSimpleConsole(i => i.ColorBehavior = LoggerColorBehavior.Disabled);
         }
 
+        var appConfigStoreConn = builder.Configuration.GetConnectionString("AppConfigStore");
+        if (!string.IsNullOrEmpty(appConfigStoreConn))
+        {
+            logger.LogInformation("Found AppConfig connection string, adding Azure App Configuration as configuration source");
+            if (appConfigStoreConn.StartsWith("http"))
+            {
+                var userAssignedManagedIdentity = Environment.GetEnvironmentVariable("AppConfigStore__ManagedIdentityClientId");
+                builder.Configuration.AddAzureAppConfiguration(option => option.Connect(new Uri(appConfigStoreConn), new ManagedIdentityCredential(userAssignedManagedIdentity)));
+            }
+            else
+            {
+                builder.Configuration.AddAzureAppConfiguration(appConfigStoreConn);
+            }
+        }
+
         #region Configure Orleans Silo
 
         builder.Host.UseOrleans((hostBuilderContext, siloBuilder) =>
         {
             var siloIpPortOption = hostBuilderContext.GetOptions<SiloNetworkIpPortOption>("SiloNetworkIpPort");
+
+            var clusterOptions = hostBuilderContext.GetOptions<ClusterOptions>("OrleansCluster");
+            if (string.IsNullOrEmpty(clusterOptions.ClusterId) || string.IsNullOrEmpty(clusterOptions.ServiceId))
+            {
+                logger.LogInformation("No Orleans Cluster Id or Service Id found in configuration, use some built-in system environment variables to construct clusterOptions");
+                clusterOptions = ClusterOptionsHelper.CreateClusterOptions("cluster-", "OrleansUrlShortener");
+            }
+
             // Configure silo
             if (SiloNetworkIpPortOptionHelper.HasAzureWebAppSiloNetworkIpPortOption(out var siloNetworkIpPortOption))
             {
-                var clusterOptions = ClusterOptionsHelper.CreateClusterOptions("cluster-", "OrleansUrlShortener");
                 siloBuilder.UseAzureAppServiceRunningConfiguration(siloNetworkIpPortOption, clusterOptions, logger);
             }
             else if (SiloIpAddressIsAny(siloIpPortOption.SiloIpAddress) || siloIpPortOption.ListenOnAnyHostAddress)
             {
-                siloIpPortOption.SiloIpAddress = IPAddress.Loopback;
-                var clusterOptions = ClusterOptionsHelper.CreateClusterOptions("cluster-", "OrleansUrlShortener");
+                if (isInContainer)
+                {
+                    var containerIp = ContainerRunHelper.GetFirstAccesibleContainerIpAddress();
+                    if (containerIp != null)
+                    {
+                        siloIpPortOption.SiloIpAddress = containerIp;
+                    }
+                }
+                else
+                {
+                    // Fail back to use localhost address
+                    siloIpPortOption.SiloIpAddress = IPAddress.Loopback;
+                }
+
                 siloBuilder.UseAzureAppServiceRunningConfiguration(siloIpPortOption, clusterOptions, logger);
             }
             else if (hostBuilderContext.HostingEnvironment.IsDevelopment())
@@ -88,9 +125,10 @@ public class Program
         #endregion
 
         var appInsightConnectionString = builder.Configuration.GetValue<string>(appInsightKey);
+        // We use Application insight's configuration to know if we are running on Azure Web App or locally
         if (!string.IsNullOrEmpty(appInsightConnectionString))
         {
-            // We use Application insight's configuration to know if we are running on Azure Web App or locally
+            builder.Services.SetAzureAppInsightRoleName("Frontend Web API");
             builder.Services.AddApplicationInsightsTelemetry(options => options.ConnectionString = appInsightConnectionString);
             builder.Logging.AddApplicationInsights(config => { config.ConnectionString = appInsightConnectionString; },
                 options => { options.FlushOnDispose = true; });

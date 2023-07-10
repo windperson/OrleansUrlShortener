@@ -1,15 +1,17 @@
 param location string = resourceGroup().location
 param frontendWebAppName string
-param storageAccountUrl string
 param webappSku string = 'S1'
 param vnetSubnetId string
 param acrUri string
 param containerImageNameTag string
+param userAssignedIdnetityClientId string
+param userAssignedIdnetityResourceId string
+param appConfigStoreUrl string
 
 // https://github.com/MicrosoftDocs/azure-docs/issues/36505#issuecomment-627899215
 var linuxFxVersion = 'DOCKER|${acrUri}/${containerImageNameTag}'
 
-resource frontendAppServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
+resource frontendAppServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
     name: '${frontendWebAppName}-plan'
     location: location
     sku: {
@@ -22,7 +24,7 @@ resource frontendAppServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
     }
 }
 
-resource frontend 'Microsoft.Web/sites@2022-03-01' = {
+resource frontend 'Microsoft.Web/sites@2022-09-01' = {
     name: frontendWebAppName
     location: location
     tags: {
@@ -32,7 +34,7 @@ resource frontend 'Microsoft.Web/sites@2022-03-01' = {
     identity: {
         type: 'UserAssigned'
         userAssignedIdentities: {
-            '${managedIdentity.id}': {}
+            '${userAssignedIdnetityResourceId}': {}
         }
     }
     properties: {
@@ -47,14 +49,9 @@ resource frontend 'Microsoft.Web/sites@2022-03-01' = {
             vnetPrivatePortsCount: 2
             healthCheckPath: '/healthz'
             acrUseManagedIdentityCreds: true
-            acrUserManagedIdentityID: managedIdentity.properties.clientId
+            acrUserManagedIdentityID: userAssignedIdnetityClientId
         }
     }
-}
-
-resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-    name: frontendWebAppName
-    location: location
 }
 
 module appInsight 'operationalInsight.bicep' = {
@@ -66,10 +63,17 @@ module appInsight 'operationalInsight.bicep' = {
     }
 }
 
-resource frontendAppConfig 'Microsoft.Web/sites/config@2022-03-01' = {
+resource frontendAppConfig 'Microsoft.Web/sites/config@2022-09-01' = {
     name: 'web'
     parent: frontend
     properties: {
+        connectionStrings: [
+            {
+                name: 'AppConfigStore'
+                connectionString: appConfigStoreUrl
+                type: 'Custom'
+            }
+        ]
         appSettings: [
             {
                 name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
@@ -93,19 +97,15 @@ resource frontendAppConfig 'Microsoft.Web/sites/config@2022-03-01' = {
             }
             {
                 name: 'UrlStoreGrain__ManagedIdentityClientId'
-                value: managedIdentity.properties.clientId
-            }
-            {
-                name: 'UrlStoreGrain__ServiceUrl'
-                value: storageAccountUrl
-            }
-            {
-                name: 'AzureTableCluster__ServiceUrl'
-                value: storageAccountUrl
+                value: userAssignedIdnetityClientId
             }
             {
                 name: 'AzureTableCluster__ManagedIdentityClientId'
-                value: managedIdentity.properties.clientId
+                value: userAssignedIdnetityClientId
+            }
+            {
+                name: 'AppConfigStore__ManagedIdentityClientId'
+                value: userAssignedIdnetityClientId
             }
             {
                 // Extend app service restart container time limit so Orleans Silos could have enough time to sync
@@ -125,6 +125,5 @@ var publishingCredentials = resourceId('Microsoft.Web/sites/config', frontendWeb
 var deployWebhookUrl = '${list(publishingCredentials, '2022-03-01').properties.scmUri}/docker/hook'
 
 output DeployWebhookUrl string = deployWebhookUrl
-output ProductionWebAppManagedIdentity string = managedIdentity.properties.principalId
 output OperationalInsightAppInsightInstrumentKey string = appInsight.outputs.appInsightInstrumentKey
 output OperationalInsightAppInsightConnectionString string = appInsight.outputs.appInsightConnectionString

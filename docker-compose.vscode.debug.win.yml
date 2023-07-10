@@ -4,6 +4,9 @@ services:
       target: final
     ports:
       - "80"
+      - "443"
+      - "11111" # Silo port
+      - "11112" # Gateway port
     env_file:
       - local.debug.azure.env
     environment:
@@ -12,3 +15,9 @@ services:
     volumes:
       - ./devCerts/https:/root/.aspnet/https:ro
       - ~/.vsdbg:/remote_debugger:rw
+
+  urlshortener.backend.silohost:
+    build:
+      target: final
+    env_file:
+      - local.debug.azure.env

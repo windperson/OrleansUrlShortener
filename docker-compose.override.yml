@@ -7,11 +7,15 @@ services:
       dockerfile: src/UrlShortener.Frontend/Dockerfile.dev
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS=true
       - ASPNETCORE_URLS=https://+:443;http://+:80
+      - AzureTableCluster__ServiceUrl=https://table.internal.host:10002/devstoreaccount1
       - UrlStoreGrain__ServiceUrl=https://table.internal.host:10002/devstoreaccount1
     ports:
       - "80"
       - "443"
+      - "11111" # Silo port
+      - "11112" # Gateway port
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
@@ -20,6 +24,25 @@ services:
     links:
       - "azurite:table.internal.host"
       
+  urlshortener.backend.silohost:
+    build:
+      context: .
+      dockerfile: src/UrlShortener.Backend.SiloHost/Dockerfile.dev
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - ACI__PORTS=8899,8900
+      - AzureTableCluster__ServiceUrl=https://table.internal.host:10002/devstoreaccount1
+      - UrlStoreGrain__ServiceUrl=https://table.internal.host:10002/devstoreaccount1
+    ports:
+      - "8899" # Silo port
+      - "8900" # Gateway port
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+    depends_on:
+      - azurite
+    links:
+      - "azurite:table.internal.host"
+
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     scale: 1
@@ -28,3 +51,4 @@ services:
     volumes:
       - ./docker_azurite_data:/docker_azurite_data
       - ./devCerts:/devCerts
+

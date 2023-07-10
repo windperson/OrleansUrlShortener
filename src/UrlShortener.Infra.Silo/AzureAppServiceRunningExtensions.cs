@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Builder;
+
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -14,7 +15,7 @@ public static class AzureAppServiceRunningExtensions
     public static ISiloBuilder UseAzureAppServiceRunningConfiguration(this ISiloBuilder siloBuilder,
         SiloNetworkIpPortOption siloNetworkIpPortOption, ClusterOptions clusterOptions, ILogger? logger = null)
     {
-        logger ??= new NullLogger<WebApplicationBuilder>();
+        logger ??= new NullLogger<HostBuilder>();
 
         if (ContainerRunHelper.IsRunningInContainer())
         {

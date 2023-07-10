@@ -4,3 +4,9 @@ services:
       target: base-mkcert-dev 
     env_file:
       - local.debug.azure.env
+      
+  urlshortener.backend.silohost:
+    build:
+      target: base-mkcert-dev 
+    env_file:
+      - local.debug.azure.env

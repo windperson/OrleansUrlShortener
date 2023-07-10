@@ -19,8 +19,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="[6.0.*, 7.0.0)" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
+    <PackageReference Include="OrleansDashboard" Version="[3.6.*, 7.0.0)" />
   </ItemGroup>
 
 </Project>

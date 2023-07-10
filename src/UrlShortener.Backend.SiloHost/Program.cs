@@ -1,10 +1,18 @@
 using System.Net;
 
+using Azure.Identity;
+
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging.Console;
 
 using Orleans;
 using Orleans.Configuration;
+using Orleans.Runtime;
 
+using OrleansDashboard.Metrics;
+using OrleansDashboard.Metrics.Details;
+
+using UrlShortener.Backend.SiloHost.DashboardImpl;
 using UrlShortener.Infra.Silo;
 using UrlShortener.Infra.Silo.Options;
 
@@ -25,9 +33,39 @@ public class Program
         var isInContainer = ContainerRunHelper.IsRunningInContainer();
 
         var builder = Host.CreateDefaultBuilder(args)
+            .ConfigureAppConfiguration(configBuilder =>
+            {
+                var configuration = configBuilder.Build();
+                var appConfigStoreConn = configuration.GetConnectionString("AppConfigStore");
+                if (string.IsNullOrEmpty(appConfigStoreConn))
+                {
+                    return;
+                }
+
+                logger.LogInformation("Found AppConfig connection string, adding Azure App Configuration as configuration source");
+                if (appConfigStoreConn.StartsWith("http"))
+                {
+                    var userAssignedManagedIdentity = Environment.GetEnvironmentVariable("AppConfigStore__ManagedIdentityClientId");
+                    configBuilder.AddAzureAppConfiguration(option => option.Connect(new Uri(appConfigStoreConn), new ManagedIdentityCredential(userAssignedManagedIdentity)));
+                }
+                else
+                {
+                    configBuilder.AddAzureAppConfiguration(appConfigStoreConn);
+                }
+
+            })
             .ConfigureServices((hostBuilderContext, services) =>
             {
-                services.AddApplicationInsightsTelemetryWorkerService();
+                var appInsightConnectionString = hostBuilderContext.Configuration.GetValue<string>(appInsightKey);
+                if (!string.IsNullOrEmpty(appInsightConnectionString))
+                {
+                    services.SetAzureAppInsightRoleName("Backend Silo Host");
+                    services.AddApplicationInsightsTelemetryWorkerService(config =>
+                    {
+                        config.ConnectionString = appInsightConnectionString;
+                        config.EnableHeartbeat = true;
+                    });
+                }
 
                 // Configure logging based on different environment
                 services.AddLogging(logBuilder =>
@@ -39,19 +77,25 @@ public class Program
                         logBuilder.AddSimpleConsole(i => i.ColorBehavior = LoggerColorBehavior.Disabled);
                     }
 
-                    var appInsightConnectionString = hostBuilderContext.Configuration.GetValue<string>(appInsightKey);
-                    if (!string.IsNullOrEmpty(appInsightConnectionString))
+                    if (string.IsNullOrEmpty(appInsightConnectionString))
                     {
-                        logBuilder.AddApplicationInsights(config => config.ConnectionString = appInsightConnectionString,
-                            options => options.FlushOnDispose = true);
+                        return;
                     }
 
+                    logger.LogInformation("Add Application Insight as a logger sink");
+                    logBuilder.AddApplicationInsights(config => config.ConnectionString = appInsightConnectionString,
+                        options => options.FlushOnDispose = true);
+
                 });
+
+
+                RegisterDashboardService(services);
             })
             .UseOrleans((hostBuilderContext, siloBuilder) =>
             {
                 // Configure silo
-                // First configure silo clustering mechanism, if we cannot find the valid configuration, we will use local silo
+                // First configure silo clustering mechanism according to current configuration,
+                // If we cannot find the valid configuration, use local dev silo
                 var azureTableClusterOption = hostBuilderContext.GetOptions<AzureTableClusterOption>("AzureTableCluster");
                 if (!string.IsNullOrEmpty(azureTableClusterOption.ServiceUrl))
                 {
@@ -61,18 +105,45 @@ public class Program
                 {
                     siloBuilder.UseLocalSingleSilo();
                 }
-
-                var clusterOptions = new ClusterOptions { ClusterId = "cluster-single-slot", ServiceId = "OrleansUrlShortener" };
-
-                // GET Azure Container Instance exposed port via a environment variable we set when provision the ACI using Bicep
-                var exposedPorts = hostBuilderContext.Configuration.GetValue<string>("ACI:PORTS").Split(",").Select(int.Parse).ToArray();
-
-                var siloIpAddr = IPAddress.Loopback;
-                var nodeIpOrFQDN = Environment.GetEnvironmentVariable("Fabric_NodeIPOrFQDN");
-                if (!string.IsNullOrEmpty(nodeIpOrFQDN))
+                var clusterOptions = hostBuilderContext.GetOptions<ClusterOptions>("OrleansCluster");
+                if (string.IsNullOrEmpty(clusterOptions.ClusterId) || string.IsNullOrEmpty(clusterOptions.ServiceId))
                 {
+                    logger.LogInformation("No Orleans Cluster Id or Service Id found in configuration, using local single slot mode clusterOptions value");
+                    clusterOptions = new ClusterOptions { ClusterId = "cluster-single-slot", ServiceId = "OrleansUrlShortener" };
+                }
+
+                // GET Azure Container Instance exposed port
+                var exposedPorts = hostBuilderContext.Configuration.GetSection("ACI:OpenPorts").Get<int[]>();
+
+                if (exposedPorts == null || exposedPorts.Length < 2)
+                {
+                    throw new InvalidOperationException("Cannot find exposed ports configuration for Orleans silo");
+                }
+
+                // Try to infer the silo IP address from known environment variable that should exist on ACI,
+                // If not found, try to get the first meaningful container IP address
+                var siloIpAddr = IPAddress.Loopback;
+                var vnetIp = Environment.GetEnvironmentVariable("Fabric_NET-0-[Delegated]");
+                var nodeIpOrFQDN = Environment.GetEnvironmentVariable("Fabric_NodeIPOrFQDN");
+                if (!string.IsNullOrEmpty(vnetIp))
+                {
+                    logger.LogInformation("Use vnet IP as Orleans Silo IP");
+                    siloIpAddr = IPAddress.Parse(vnetIp);
+                }
+                else if (!string.IsNullOrEmpty(nodeIpOrFQDN))
+                {
+                    logger.LogInformation("Use vnet IP as Orleans Silo IP");
                     siloIpAddr = IPAddress.Parse(nodeIpOrFQDN);
                 }
+                else if (isInContainer)
+                {
+                    var containerIp = ContainerRunHelper.GetFirstAccesibleContainerIpAddress();
+                    if (containerIp != null)
+                    {
+                        siloIpAddr = containerIp;
+                    }
+                }
+
                 var siloNetworkIpPortOption = new SiloNetworkIpPortOption()
                 {
                     SiloIpAddress = siloIpAddr,
@@ -92,12 +163,9 @@ public class Program
                     siloBuilder.UseAzureApplicationInsightLogging(appInsightConnectionString);
                 }
 
-                // Add instruments for Orleans Dashboard for system metrics
+                // Add instruments for Orleans Dashboard to see system metrics data
                 siloBuilder.UseOsEnvironmentStatistics(logger);
-                siloBuilder.UseDashboard(dashboardOptions =>
-                {
-                    dashboardOptions.HostSelf = false;
-                });
+
             });
 
         if (isInContainer)
@@ -108,5 +176,29 @@ public class Program
         var host = builder.Build();
 
         host.Run();
+    }
+
+    /// <summary>
+    /// Configure Orleans grain profiler and some other DI service for OrleansDashboard functionality
+    /// </summary>
+    /// <param name="services"></param>
+    private static void RegisterDashboardService(IServiceCollection services)
+    {
+        //         services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
+        services.AddSingleton<MembershipTableSiloDetailsProvider>();
+        services.AddSingleton<IGrainProfiler, GrainProfiler>();
+        services.AddSingleton(c => (ILifecycleParticipant<ISiloLifecycle>)c.GetRequiredService<IGrainProfiler>());
+        services.AddSingleton<IIncomingGrainCallFilter, GrainProfilerFilter>();
+        services.AddSingleton<ISiloDetailsProvider>(c =>
+        {
+            var membershipTable = c.GetService<IMembershipTable>();
+
+            return membershipTable != null
+                ? c.GetRequiredService<MembershipTableSiloDetailsProvider>()
+                : c.GetRequiredService<SiloStatusOracleSiloDetailsProvider>();
+        });
+
+        services.TryAddSingleton(GrainProfilerFilter.NoopOldGrainMethodFormatter);
+        services.TryAddSingleton(GrainProfilerFilter.DefaultGrainMethodFormatter);
     }
 }
