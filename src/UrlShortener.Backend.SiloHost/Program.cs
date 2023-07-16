@@ -46,13 +46,13 @@ public class Program
                 if (appConfigStoreConn.StartsWith("http"))
                 {
                     var userAssignedManagedIdentity = Environment.GetEnvironmentVariable("AppConfigStore__ManagedIdentityClientId");
-                    configBuilder.AddAzureAppConfiguration(option => option.Connect(new Uri(appConfigStoreConn), new ManagedIdentityCredential(userAssignedManagedIdentity)));
+                    configBuilder.AddAzureAppConfiguration(option =>
+                            option.Connect(new Uri(appConfigStoreConn), new ManagedIdentityCredential(userAssignedManagedIdentity)));
                 }
                 else
                 {
                     configBuilder.AddAzureAppConfiguration(appConfigStoreConn);
                 }
-
             })
             .ConfigureServices((hostBuilderContext, services) =>
             {
@@ -165,7 +165,6 @@ public class Program
 
                 // Add instruments for Orleans Dashboard to see system metrics data
                 siloBuilder.UseOsEnvironmentStatistics(logger);
-
             });
 
         if (isInContainer)
@@ -184,7 +183,7 @@ public class Program
     /// <param name="services"></param>
     private static void RegisterDashboardService(IServiceCollection services)
     {
-        //         services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
+        services.AddSingleton<SiloStatusOracleSiloDetailsProvider>();
         services.AddSingleton<MembershipTableSiloDetailsProvider>();
         services.AddSingleton<IGrainProfiler, GrainProfiler>();
         services.AddSingleton(c => (ILifecycleParticipant<ISiloLifecycle>)c.GetRequiredService<IGrainProfiler>());

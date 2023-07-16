@@ -65,7 +65,8 @@ module webapp 'webapp.bicep' = {
   }
 }
 
-var aciOpenPorts = [ { port: 8880, protocol: 'TCP' }, { port: 8881, protocol: 'TCP' } ]
+var aciOpenPorts = [ { port: 8880, protocol: 'TCP' }
+                     { port: 8881, protocol: 'TCP' } ]
 
 module aci 'aci.bicep' = if (deployAci) {
   name: '${backend_aci_containergroup_name}Deployment'
@@ -77,7 +78,7 @@ module aci 'aci.bicep' = if (deployAci) {
     userAssignedIdnetityClientId: aciManagedIdentity_clientId
     userAssignedIdnetityResourceId: aciManagedIdentity_resouceId
     subnetId: vnet.outputs.aciSubNetId
-    operationalInsightConnectionString: webapp.outputs.OperationalInsightAppInsightConnectionString
+    operationalInsightConnStr: webapp.outputs.AppInsightConnectionString
     appConfigStoreUrl: app_config_store.outputs.appConfigEndpoint
     openPorts: aciOpenPorts
   }

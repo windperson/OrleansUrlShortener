@@ -25,6 +25,9 @@ EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{2D3E3736-60B6-4F8C-AE60-F9D7A8BB88E4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UrlShortener.Backend.SiloHost", "src\UrlShortener.Backend.SiloHost\UrlShortener.Backend.SiloHost.csproj", "{32E34900-9451-4C67-91EA-BDD7E12853D9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EECC71C2-20AF-422E-B66E-C2C4755EBDA2} = {EECC71C2-20AF-422E-B66E-C2C4755EBDA2}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

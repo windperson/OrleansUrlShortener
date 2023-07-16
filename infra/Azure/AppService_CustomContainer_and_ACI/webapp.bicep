@@ -113,6 +113,10 @@ resource frontendAppConfig 'Microsoft.Web/sites/config@2022-09-01' = {
                 name: 'WEBSITES_CONTAINER_START_TIME_LIMIT'
                 value: '330'
             }
+            {
+                name: 'ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS'
+                value: 'true'
+            }
         ]
     }
 }
@@ -125,5 +129,5 @@ var publishingCredentials = resourceId('Microsoft.Web/sites/config', frontendWeb
 var deployWebhookUrl = '${list(publishingCredentials, '2022-03-01').properties.scmUri}/docker/hook'
 
 output DeployWebhookUrl string = deployWebhookUrl
-output OperationalInsightAppInsightInstrumentKey string = appInsight.outputs.appInsightInstrumentKey
-output OperationalInsightAppInsightConnectionString string = appInsight.outputs.appInsightConnectionString
+output AppInsightInstrumentKey string = appInsight.outputs.appInsightInstrumentKey
+output AppInsightConnectionString string = appInsight.outputs.appInsightConnectionString

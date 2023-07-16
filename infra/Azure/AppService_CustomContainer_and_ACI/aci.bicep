@@ -29,7 +29,7 @@ param userAssignedIdnetityResourceId string
 param subnetId string
 
 @description('The connection string to the Azure Operational Insights workspace.')
-param operationalInsightConnectionString string
+param operationalInsightConnStr string
 
 @description('The connection string to the Azure App Configuration store.')
 param appConfigStoreUrl string
@@ -64,7 +64,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2023-05-01'
           environmentVariables: [
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-              value: operationalInsightConnectionString
+              value: operationalInsightConnStr
             }
             {
               name: 'ConnectionStrings__AppConfigStore'
